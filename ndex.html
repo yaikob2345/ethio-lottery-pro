@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ETB Chance Spin Draw</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<h1>🎰 ETB Chance Spin Draw</h1>
+<p class="subtitle">Two modes running in parallel — join the one you like!</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('register', this)">📝 Register</button>
+  <button class="tab" onclick="showTab('tickets', this)">🎫 My Tickets</button>
+  <button class="tab" onclick="showTab('chat', this)">💬 Chat</button>
+  <button class="tab" onclick="showTab('spin', this)">🎡 Live Spin</button>
+  <button class="tab" onclick="showTab('admin', this)">🔐 Admin</button>
+</div>
+
+<!-- REGISTER -->
+<div id="register" class="panel active">
+  <div class="card">
+    <h2>📝 Register & Upload Payment</h2>
+    <div class="notice" id="registerNotice"></div>
+    <div class="mode-choose">
+      <label class="mode-option">
+        <input type="radio" name="regMode" value="mini" checked onchange="updateRegisterNotice()" />
+        <div class="mode-card">
+          <div class="mode-title">🎯 Mini Mode</div>
+          <div class="mode-info">20 users × 100 ETB</div>
+          <div class="mode-prizes">1000 • 300 • 200 • 100 ETB</div>
+        </div>
+      </label>
+      <label class="mode-option">
+        <input type="radio" name="regMode" value="standard" onchange="updateRegisterNotice()" />
+        <div class="mode-card">
+          <div class="mode-title">🏆 Standard Mode</div>
+          <div class="mode-info">300 users × 200 ETB</div>
+          <div class="mode-prizes">30000 • 10000 • 5000 • 1000 ETB</div>
+        </div>
+      </label>
+    </div>
+    <input type="text" id="userName" placeholder="Full Name *" />
+    <input type="tel" id="userPhone" placeholder="Phone Number * (e.g., 0912345678)" />
+    <input type="number" id="userAmount" placeholder="Amount Paid (ETB) *" min="100" step="100" oninput="showAmountHint()" />
+    <div id="amountHint"></div>
+    <input type="text" id="userNote" placeholder="Note (optional)" />
+    <div class="file-input-wrap">
+      <label>📸 Upload Transfer Screenshot *</label>
+      <input type="file" id="userScreenshot" accept="image/*" onchange="previewImage(event)" />
+      <img id="previewImg" alt="Preview" />
+    </div>
+    <button class="btn" onclick="submitRegistration()">📤 Submit Registration</button>
+    <div id="regMsg"></div>
+  </div>
+</div>
+
+<!-- TICKETS -->
+<div id="tickets" class="panel">
+  <div class="card">
+    <h2>🎫 My Tickets & Credits</h2>
+    <input type="tel" id="lookupPhone" placeholder="Enter your phone" />
+    <button class="btn" onclick="lookupTickets()">🔍 Find My Tickets</button>
+    <div id="ticketList"></div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="panel">
+  <div class="card">
+    <h2>💬 Chat with Admin <span class="unlimited-badge">∞ UNLIMITED</span></h2>
+    <div class="notice info">
+      💡 <strong>No limits!</strong> Chat freely with admin — no registration required.
+      Just enter your phone number and name to start.
+    </div>
+    <input type="tel" id="chatPhone" placeholder="Your phone number *" />
+    <input type="text" id="chatName" placeholder="Your name (first time only)" />
+    <button class="btn" onclick="openUserChat()">🔓 Open / Start Chat</button>
+    <div id="chatArea"></div>
+  </div>
+</div>
+
+<!-- LIVE SPIN -->
+<div id="spin" class="panel">
+  <div class="card">
+    <h2>🎡 Live Spin</h2>
+    <div class="notice warn">
+      👁️ <strong>View only:</strong> Admin controls the spin.
+    </div>
+    <div class="spin-tabs">
+      <button class="spin-tab active" onclick="showSpinMode('mini', this)">🎯 Mini Mode</button>
+      <button class="spin-tab" onclick="showSpinMode('standard', this)">🏆 Standard Mode</button>
+    </div>
+    <div id="spin-mini" class="spin-mode-panel active">
+      <div class="round-info">
+        <div class="stat"><div class="label">Target</div><div class="value" id="liveTarget-mini">2,000</div></div>
+        <div class="stat"><div class="label">Collected</div><div class="value" id="liveCollected-mini">0</div></div>
+        <div class="stat"><div class="label">Tickets</div><div class="value" id="liveTickets-mini">0</div></div>
+        <div class="stat"><div class="label">Status</div><div class="value" id="liveStatus-mini">Collecting</div></div>
+      </div>
+      <div class="progress"><div class="progress-bar" id="liveProgress-mini">0%</div></div>
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <canvas id="wheel-mini" width="500" height="500"></canvas>
+        <div class="center-circle"></div>
+      </div>
+      <p id="spinMessage-mini">Waiting for admin...</p>
+      <div id="roundWinners-mini"></div>
+    </div>
+    <div id="spin-standard" class="spin-mode-panel">
+      <div class="round-info">
+        <div class="stat"><div class="label">Target</div><div class="value" id="liveTarget-standard">60,000</div></div>
+        <div class="stat"><div class="label">Collected</div><div class="value" id="liveCollected-standard">0</div></div>
+        <div class="stat"><div class="label">Tickets</div><div class="value" id="liveTickets-standard">0</div></div>
+        <div class="stat"><div class="label">Status</div><div class="value" id="liveStatus-standard">Collecting</div></div>
+      </div>
+      <div class="progress"><div class="progress-bar" id="liveProgress-standard">0%</div></div>
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <canvas id="wheel-standard" width="500" height="500"></canvas>
+        <div class="center-circle"></div>
+      </div>
+      <p id="spinMessage-standard">Waiting for admin...</p>
+      <div id="roundWinners-standard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="panel">
+  <div class="card" id="adminLogin">
+    <h2>🔐 Admin Login</h2>
+    <input type="password" id="adminPass" placeholder="Admin Password" />
+    <button class="btn" onclick="adminLogin()">Login</button>
+    <p class="hint">Default password: <code>admin123</code></p>
+  </div>
+
+  <div id="adminDash" class="hidden">
+
+    <!-- Storage Monitor -->
+    <div class="card">
+      <h2>💾 Storage Monitor</h2>
+      <div class="storage-bar-wrap">
+        <div class="storage-bar">
+          <div class="storage-fill" id="storageFill"></div>
+        </div>
+        <span id="storageText" class="storage-text">Calculating...</span>
+      </div>
+      <p style="font-size:12px; opacity:.7; margin-top:5px;">
+        Browser localStorage limit is ~5 MB. Screenshots use the most space.
+      </p>
+    </div>
+
+    <!-- Overview -->
+    <div class="card">
+      <h2>📊 Overview — Both Modes</h2>
+      <div class="overview-grid">
+        <div class="overview-card mini">
+          <h3>🎯 Mini Mode</h3>
+          <div>Round: <span id="adminRound-mini">1</span></div>
+          <div>Collected: <span id="adminCollected-mini">0</span> / 2,000 ETB</div>
+          <div>Tickets: <span id="adminTickets-mini">0</span></div>
+          <div>Pending: <span id="adminPending-mini">0</span></div>
+          <div>Status: <span id="adminStatus-mini">COLLECTING</span></div>
+          <div class="progress"><div class="progress-bar" id="adminProgress-mini">0%</div></div>
+          <button class="btn btn-gold btn-sm" id="startSpinBtn-mini" onclick="adminStartSpin('mini')" disabled>🎡 START SPIN</button>
+          <button class="btn btn-danger btn-sm" onclick="adminResetRound('mini')">🔄 Reset</button>
+        </div>
+        <div class="overview-card standard">
+          <h3>🏆 Standard Mode</h3>
+          <div>Round: <span id="adminRound-standard">1</span></div>
+          <div>Collected: <span id="adminCollected-standard">0</span> / 60,000 ETB</div>
+          <div>Tickets: <span id="adminTickets-standard">0</span></div>
+          <div>Pending: <span id="adminPending-standard">0</span></div>
+          <div>Status: <span id="adminStatus-standard">COLLECTING</span></div>
+          <div class="progress"><div class="progress-bar" id="adminProgress-standard">0%</div></div>
+          <button class="btn btn-gold btn-sm" id="startSpinBtn-standard" onclick="adminStartSpin('standard')" disabled>🎡 START SPIN</button>
+          <button class="btn btn-danger btn-sm" onclick="adminResetRound('standard')">🔄 Reset</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        💬 Messages: <strong id="adminMessages">0</strong>
+      </div>
+    </div>
+
+    <!-- DATA MANAGEMENT -->
+    <div class="card data-card">
+      <h2>📁 Data Management</h2>
+      <p style="font-size:13px; opacity:.8; margin-bottom:15px;">
+        Download round data, backup/restore full state, and free up storage.
+      </p>
+      <div class="data-section">
+        <h3>📥 Download Reports</h3>
+        <div class="btn-group">
+          <button class="btn btn-sm" onclick="downloadCSV()">📊 Download CSV Report</button>
+          <button class="btn btn-sm" onclick="downloadWinnersCSV()">🏆 Winners Only CSV</button>
+          <button class="btn btn-sm" onclick="downloadTicketsCSV()">🎫 Tickets Only CSV</button>
+        </div>
+      </div>
+      <div class="data-section">
+        <h3>💾 Backup & Restore</h3>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-warning" onclick="downloadJSON()">📦 Download Full Backup (JSON)</button>
+          <label class="btn btn-sm upload-label">
+            📂 Upload Backup (JSON)
+            <input type="file" accept=".json" onchange="importJSON(event)" style="display:none;" />
+          </label>
+        </div>
+      </div>
+      <div class="data-section">
+        <h3>🧹 Free Up Storage</h3>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-warning" onclick="cleanupScreenshots()">🗑️ Remove Old Screenshots</button>
+          <button class="btn btn-sm btn-danger" onclick="clearCompletedRounds()">❌ Clear Completed Round Data</button>
+          <button class="btn btn-sm btn-danger" onclick="clearAllData()">💣 Factory Reset (Delete ALL)</button>
+        </div>
+      </div>
+      <div id="dataMsg" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Pending -->
+    <div class="card">
+      <h2>⏳ Pending Verifications</h2>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="showAdminMode('mini', this)">🎯 Mini</button>
+        <button class="mode-tab" onclick="showAdminMode('standard', this)">🏆 Standard</button>
+      </div>
+      <div id="pendingList"></div>
+    </div>
+
+    <!-- Chat with USER LIST (NEW!) -->
+    <div class="card">
+      <h2>💬 Chat with Users <span class="unlimited-badge">∞ UNLIMITED</span></h2>
+
+      <!-- 👥 User List — click to chat -->
+      <div class="user-list-section">
+        <h3>👥 Registered Users (click to chat)</h3>
+        <input type="text" id="userSearchInput" placeholder="🔍 Search by name or phone..." oninput="renderUserList()" />
+        <div id="userListContainer"></div>
+      </div>
+
+      <!-- 💬 Existing Conversations -->
+      <div class="chat-conversations-section">
+        <h3>💬 Active Conversations</h3>
+        <div id="adminChatList"></div>
+      </div>
+
+      <!-- ➕ Manual chat (fallback for non-registered users) -->
+      <details class="manual-chat-section">
+        <summary style="cursor:pointer; padding:10px; background:rgba(0,0,0,.2); border-radius:8px; margin-bottom:10px;">
+          ➕ Chat with someone not in the list (manual entry)
+        </summary>
+        <div class="chat-starter" style="margin-top:10px;">
+          <input type="tel" id="adminNewChatPhone" placeholder="Phone number" />
+          <input type="text" id="adminNewChatName" placeholder="User name (optional)" />
+          <button class="btn btn-sm" onclick="adminStartNewChat()">Start Chat</button>
+        </div>
+      </details>
+    </div>
+
+    <!-- Credits -->
+    <div class="card">
+      <h2>💜 User Credits Ledger</h2>
+      <div id="creditLedger"></div>
+    </div>
+
+    <!-- Approved -->
+    <div class="card">
+      <h2>✅ Approved Tickets</h2>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="showApprovedMode('mini', this)">🎯 Mini</button>
+        <button class="mode-tab" onclick="showApprovedMode('standard', this)">🏆 Standard</button>
+      </div>
+      <div id="approvedList"></div>
+    </div>
+
+    <!-- Winners -->
+    <div class="card">
+      <h2>🏆 Round Winners</h2>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="showWinnersMode('mini', this)">🎯 Mini</button>
+        <button class="mode-tab" onclick="showWinnersMode('standard', this)">🏆 Standard</button>
+      </div>
+      <div id="adminWinners"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Image modal -->
+<div class="modal" id="imgModal" onclick="this.classList.remove('show')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h2>📸 Payment Screenshot</h2>
+    <img id="imgModalSrc" alt="Screenshot" />
+    <button class="btn" onclick="document.getElementById('imgModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<!-- Winner modal -->
+<div class="modal" id="winnerModal">
+  <div class="modal-content">
+    <h2 id="modalTitle">🎉 WINNER!</h2>
+    <div class="prize" id="modalPrize">50,000 ETB</div>
+    <div class="winner" id="modalWinner">John Doe</div>
+    <div class="ticket-id" id="modalTicket">M1-123456</div>
+    <div id="modalMode" style="font-size:14px; opacity:.8;"></div>
+    <button class="btn" onclick="closeWinnerModal()" id="modalBtn">Continue</button>
+  </div>
+</div>
+
+<!-- Admin chat modal -->
+<div class="modal" id="adminChatModal">
+  <div class="modal-content chat-modal">
+    <h2 id="adminChatTitle">💬 Chat</h2>
+    <div id="adminChatMessages" class="chat-messages"></div>
+    <div class="chat-input">
+      <input type="text" id="adminReplyInput" placeholder="Type reply..." onkeypress="if(event.key==='Enter')sendAdminReply()" />
+      <button class="btn btn-sm" onclick="sendAdminReply()">Send</button>
+      <button class="btn btn-sm btn-danger" onclick="closeAdminChat()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="state.js"></script>
+<script src="chat.js"></script>
+<script src="register.js"></script>
+<script src="spin.js"></script>
+<script src="admin.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

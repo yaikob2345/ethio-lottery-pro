@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>ETB Chance Spin Draw</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    min-height: 100vh; color: #fff; padding: 15px;
+  }
+  h1 { text-align: center; margin-bottom: 8px; font-size: 26px; }
+  .subtitle { text-align: center; opacity: .8; margin-bottom: 18px; font-size: 13px; }
+
+  .tabs {
+    display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .tab {
+    padding: 9px 16px; background: rgba(255,255,255,.1); border: none; color: #fff;
+    border-radius: 20px; cursor: pointer; font-size: 13px; transition: .2s;
+  }
+  .tab.active { background: linear-gradient(135deg, #ff6b6b, #ee0979); }
+
+  .panel { display: none; max-width: 950px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  .card {
+    background: rgba(255,255,255,.08); backdrop-filter: blur(10px);
+    border-radius: 15px; padding: 22px; margin-bottom: 18px;
+    border: 1px solid rgba(255,255,255,.1);
+  }
+  .card h2 { margin-bottom: 14px; color: #ffcc00; font-size: 20px; }
+
+  input, select, textarea {
+    width: 100%; padding: 11px; margin-bottom: 10px;
+    border: none; border-radius: 8px; background: rgba(255,255,255,.15);
+    color: #fff; font-size: 14px;
+  }
+  input::placeholder, textarea::placeholder { color: rgba(255,255,255,.6); }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #ffcc00; }
+
+  .btn {
+    padding: 11px 22px; border: none; border-radius: 22px; cursor: pointer;
+    font-size: 14px; font-weight: bold; color: #fff; transition: .2s;
+    background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,.3); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-danger { background: linear-gradient(135deg, #ff6b6b, #ee0979); }
+  .btn-warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .btn-gold { background: linear-gradient(135deg, #f7971e, #ffd200); color: #222; }
+  .btn-sm { padding: 7px 14px; font-size: 12px; }
+
+  .round-info {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 18px;
+  }
+  .stat {
+    background: rgba(0,0,0,.3); padding: 12px; border-radius: 10px; text-align: center;
+  }
+  .stat .label { font-size: 11px; opacity: .7; }
+  .stat .value { font-size: 20px; font-weight: bold; color: #ffcc00; margin-top: 4px; }
+
+  .progress {
+    width: 100%; height: 24px; background: rgba(0,0,0,.3);
+    border-radius: 15px; overflow: hidden; margin: 8px 0;
+  }
+  .progress-bar {
+    height: 100%; background: linear-gradient(90deg, #4ecdc4, #ffcc00);
+    transition: width .5s; display: flex; align-items: center;
+    justify-content: center; font-weight: bold; font-size: 12px; color: #222;
+  }
+
+  .pending-item {
+    background: rgba(0,0,0,.25); padding: 15px; border-radius: 12px;
+    margin-bottom: 12px; border-left: 4px solid #f39c12;
+  }
+  .pending-item.warning { border-left-color: #ff6b6b; }
+  .pending-item .top {
+    display: grid; grid-template-columns: 120px 1fr; gap: 15px; align-items: start;
+  }
+  .pending-item .thumb {
+    width: 120px; height: 150px; border-radius: 8px; overflow: hidden;
+    background: rgba(0,0,0,.4); cursor: pointer; border: 2px solid rgba(255,255,255,.2);
+  }
+  .pending-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .pending-item .details { font-size: 14px; line-height: 1.6; }
+  .pending-item .details strong { color: #ffcc00; }
+  .pending-item .details input {
+    width: 180px; display: inline-block; padding: 5px; margin: 0;
+  }
+
+  /* ⚠️ Amount warning */
+  .amount-warn {
+    background: rgba(255,107,107,.2); border: 1px solid #ff6b6b;
+    color: #ffcccc; padding: 8px 12px; border-radius: 8px;
+    font-size: 13px; margin-top: 8px;
+  }
+  .amount-ok {
+    background: rgba(78,205,196,.2); border: 1px solid #4ecdc4;
+    color: #b8f3ee; padding: 8px 12px; border-radius: 8px;
+    font-size: 13px; margin-top: 8px;
+  }
+
+  .ticket {
+    background: linear-gradient(135deg, #ffd200, #f7971e);
+    color: #222; padding: 12px 15px; border-radius: 10px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: bold;
+  }
+  .ticket .id { font-size: 16px; font-family: monospace; }
+
+  /* Admin action panel */
+  .admin-actions {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px dashed rgba(255,255,255,.2);
+  }
+  .admin-actions .row {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px;
+  }
+  .admin-actions label { font-size: 13px; }
+  .admin-actions input[type=number] {
+    width: 80px; display: inline-block; margin: 0; padding: 8px;
+  }
+  .admin-actions input[type=text] {
+    flex: 1; min-width: 150px; margin: 0; padding: 8px;
+  }
+
+  .credit-badge {
+    display: inline-block; background: #9b59b6; color: #fff;
+    padding: 3px 10px; border-radius: 12px; font-size: 12px; margin-left: 5px;
+  }
+
+  /* Wheel */
+  .wheel-wrap {
+    position: relative; width: 360px; height: 360px; margin: 18px auto;
+    max-width: 90vw; max-height: 90vw;
+  }
+  .pointer {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 18px solid transparent; border-right: 18px solid transparent;
+    border-top: 32px solid #ffcc00; z-index: 10;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,.5));
+  }
+  canvas {
+    width: 100%; height: 100%; border-radius: 50%;
+    box-shadow: 0 0 30px rgba(0,0,0,.6), inset 0 0 0 8px #fff, inset 0 0 0 12px #ffcc00;
+  }
+  .center-circle {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 55px; height: 55px;
+    background: radial-gradient(circle, #ffcc00, #ff9900);
+    border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,.5); z-index: 5;
+  }
+
+  .modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.85); align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .modal.show { display: flex; animation: fadeIn .3s; }
+  .modal-content {
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    padding: 30px; border-radius: 20px; text-align: center;
+    max-width: 500px; width: 100%; border: 3px solid #ffcc00;
+    animation: pop .4s; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-content h2 { color: #ffcc00; font-size: 26px; margin-bottom: 12px; }
+  .modal-content .prize {
+    font-size: 36px; font-weight: bold; color: #fff; margin: 12px 0;
+    text-shadow: 0 0 20px #ffcc00;
+  }
+  .modal-content .winner { font-size: 18px; margin: 8px 0; }
+  .modal-content .ticket-id {
+    font-family: monospace; font-size: 22px; color: #ffcc00;
+    background: rgba(0,0,0,.3); padding: 8px; border-radius: 8px; margin: 8px 0;
+  }
+  .modal-content img {
+    max-width: 100%; max-height: 400px; border-radius: 10px; margin: 10px 0;
+    border: 2px solid #ffcc00;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .winner-row {
+    background: rgba(255,204,0,.1); padding: 10px; border-radius: 8px;
+    margin-bottom: 8px; display: flex; justify-content: space-between;
+    border-left: 4px solid #ffcc00;
+  }
+
+  .notice {
+    background: rgba(255,204,0,.15); border-left: 4px solid #ffcc00;
+    padding: 12px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+    line-height: 1.5;
+  }
+  .notice.warn { background: rgba(255,107,107,.15); border-color: #ff6b6b; }
+  .notice.info { background: rgba(78,205,196,.15); border-color: #4ecdc4; }
+
+  .hidden { display: none !important; }
+
+  .file-input-wrap { position: relative; margin-bottom: 12px; }
+  .file-input-wrap input[type=file] { padding: 10px; background: rgba(255,255,255,.1); }
+  #previewImg {
+    max-width: 100%; max-height: 200px; border-radius: 8px;
+    margin-top: 8px; display: none; border: 2px solid #ffcc00;
+  }
+
+  /* Credit ledger */
+  .ledger-item {
+    background: rgba(155,89,182,.15); border-left: 4px solid #9b59b6;
+    padding: 10px; border-radius: 8px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+
+  @media (max-width: 600px) {
+    .pending-item .top { grid-template-columns: 1fr; }
+    .pending-item .thumb { width: 100%; height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🎰 ETB Chance Spin Draw</h1>
+<p class="subtitle">Upload payment screenshot • Admin verifies & cuts tickets • Watch live spin</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('register', this)">📝 Register</button>
+  <button class="tab" onclick="showTab('tickets', this)">🎫 My Tickets</button>
+  <button class="tab" onclick="showTab('spin', this)">🎡 Live Spin</button>
+  <button class="tab" onclick="showTab('admin', this)">🔐 Admin</button>
+</div>
+
+<!-- REGISTER -->
+<div id="register" class="panel active">
+  <div class="card">
+    <h2>📝 Register & Upload Payment</h2>
+    <div class="notice">
+      💡 <strong>How to join:</strong><br>
+      1. Transfer to admin account (CBE Birr / Telebirr / Bank)<br>
+      2. Each ticket = <strong>1,000 ETB</strong> (pay 2,000 = 2 tickets, etc.)<br>
+      3. Fill form + upload transfer screenshot<br>
+      4. Admin verifies and issues your ticket ID(s)<br>
+      <em>⚠️ Please pay exact multiples of 1,000 ETB for smooth processing.</em>
+    </div>
+
+    <input type="text" id="userName" placeholder="Full Name *" />
+    <input type="tel" id="userPhone" placeholder="Phone Number * (e.g., 0912345678)" />
+    <input type="number" id="userAmount" placeholder="Amount Paid (ETB) *" min="1000" step="100" oninput="showAmountHint()" />
+    <div id="amountHint" style="margin-bottom:10px;"></div>
+    <input type="text" id="userNote" placeholder="Note (optional — e.g., Telebirr to 09XX...)" />
+
+    <div class="file-input-wrap">
+      <label style="font-size:13px; display:block; margin-bottom:6px;">📸 Upload Transfer Screenshot *</label>
+      <input type="file" id="userScreenshot" accept="image/*" onchange="previewImage(event)" />
+      <img id="previewImg" alt="Preview" />
+    </div>
+
+    <button class="btn" onclick="submitRegistration()">📤 Submit Registration</button>
+    <div id="regMsg" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- TICKETS -->
+<div id="tickets" class="panel">
+  <div class="card">
+    <h2>🎫 My Tickets & Credits</h2>
+    <input type="tel" id="lookupPhone" placeholder="Enter your phone to view tickets" />
+    <button class="btn" onclick="lookupTickets()">🔍 Find My Tickets</button>
+    <div id="ticketList" style="margin-top:18px;"></div>
+  </div>
+</div>
+
+<!-- LIVE SPIN -->
+<div id="spin" class="panel">
+  <div class="card">
+    <h2>🎡 Live Spin — Round <span id="liveRound">1</span></h2>
+    <div class="notice warn">
+      👁️ <strong>View only:</strong> The spin is controlled by admin. Just watch and enjoy!
+    </div>
+
+    <div class="round-info">
+      <div class="stat"><div class="label">Target</div><div class="value">120,000 ETB</div></div>
+      <div class="stat"><div class="label">Collected</div><div class="value" id="liveCollected">0</div></div>
+      <div class="stat"><div class="label">Tickets</div><div class="value" id="liveTickets">0</div></div>
+      <div class="stat"><div class="label">Status</div><div class="value" id="liveStatus">Collecting</div></div>
+    </div>
+    <div class="progress"><div class="progress-bar" id="liveProgress" style="width:0%">0%</div></div>
+
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="500" height="500"></canvas>
+      <div class="center-circle"></div>
+    </div>
+
+    <p id="spinMessage" style="text-align:center; margin:12px 0; font-size:15px;">
+      Waiting for admin to start the spin...
+    </p>
+
+    <div id="roundWinners"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="panel">
+  <div class="card" id="adminLogin">
+    <h2>🔐 Admin Login</h2>
+    <input type="password" id="adminPass" placeholder="Admin Password" />
+    <button class="btn" onclick="adminLogin()">Login</button>
+    <p style="margin-top:10px; font-size:12px; opacity:.7;">Default password: <code>admin123</code></p>
+  </div>
+
+  <div id="adminDash" class="hidden">
+    <div class="card">
+      <h2>📊 Round <span id="adminRound">1</span> Status</h2>
+      <div class="round-info">
+        <div class="stat"><div class="label">Collected</div><div class="value" id="adminCollected">0 ETB</div></div>
+        <div class="stat"><div class="label">Tickets</div><div class="value" id="adminTickets">0</div></div>
+        <div class="stat"><div class="label">Pending</div><div class="value" id="adminPending">0</div></div>
+        <div class="stat"><div class="label">Status</div><div class="value" id="adminStatus">Collecting</div></div>
+      </div>
+      <div class="progress"><div class="progress-bar" id="adminProgress" style="width:0%">0%</div></div>
+      <button class="btn btn-gold" id="startSpinBtn" onclick="adminStartSpin()" disabled>🎡 START SPIN</button>
+      <button class="btn btn-danger" onclick="adminResetRound()" style="margin-left:8px;">🔄 Reset Round</button>
+    </div>
+
+    <div class="card">
+      <h2>⏳ Pending Verifications (<span id="pendingCount">0</span>)</h2>
+      <div class="notice info">
+        💡 <strong>Handling odd amounts (e.g., 1,500 ETB):</strong><br>
+        • System suggests tickets = amount ÷ 1,000 (rounded down)<br>
+        • You can <strong>add the remainder as credit</strong> for user's next round<br>
+        • Or reject and ask for exact 1,000 / 2,000 ETB
+      </div>
+      <div id="pendingList"></div>
+    </div>
+
+    <div class="card">
+      <h2>💜 User Credits Ledger</h2>
+      <p style="font-size:13px; opacity:.8; margin-bottom:10px;">
+        Extra amounts kept as credit for users to use in future rounds.
+      </p>
+      <div id="creditLedger"></div>
+    </div>
+
+    <div class="card">
+      <h2>✅ Approved Tickets (This Round)</h2>
+      <div id="approvedList" style="max-height:300px; overflow-y:auto;"></div>
+    </div>
+
+    <div class="card">
+      <h2>🏆 Round Winners</h2>
+      <div id="adminWinners"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Image modal -->
+<div class="modal" id="imgModal" onclick="this.classList.remove('show')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h2>📸 Payment Screenshot</h2>
+    <img id="imgModalSrc" alt="Screenshot" />
+    <br>
+    <button class="btn" onclick="document.getElementById('imgModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<!-- Winner modal -->
+<div class="modal" id="winnerModal">
+  <div class="modal-content">
+    <h2 id="modalTitle">🎉 WINNER!</h2>
+    <div class="prize" id="modalPrize">50,000 ETB</div>
+    <div class="winner" id="modalWinner">John Doe</div>
+    <div class="ticket-id" id="modalTicket">R1-001</div>
+    <button class="btn" onclick="closeWinnerModal()" id="modalBtn">Continue</button>
+  </div>
+</div>
+
+<script>
+/* ============ STATE ============ */
+const PRIZES = [
+  { label: '50,000 ETB', value: 50000, color: '#ff6b6b' },
+  { label: '20,000 ETB', value: 20000, color: '#4ecdc4' },
+  { label: '5,000 ETB',  value: 5000,  color: '#ffe66d' },
+  { label: '5,000 ETB',  value: 5000,  color: '#a8e6cf' }
+];
+const TICKET_PRICE = 1000;
+const ROUND_TARGET = 120000;
+const ADMIN_PASSWORD = 'admin123';
+
+let state = JSON.parse(localStorage.getItem('spinState3')) || {
+  round: 1,
+  collected: 0,
+  registrations: [],
+  tickets: [],
+  winners: [],
+  credits: [],     // 💜 NEW: {phone, name, amount, fromRound, usedInRound}
+  status: 'collecting',
+  ticketCounter: 1
+};
+function save() {
+  try {
+    localStorage.setItem('spinState3', JSON.stringify(state));
+  } catch(e) {
+    alert('⚠️ Storage full! Please clear old rounds.');
+  }
+}
+
+/* ============ TABS ============ */
+function showTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'spin') updateLiveView();
+  if (id === 'admin') renderAdmin();
+}
+
+/* ============ AMOUNT HINT (user side) ============ */
+function showAmountHint() {
+  const amt = parseInt(document.getElementById('userAmount').value);
+  const hint = document.getElementById('amountHint');
+  if (!amt || amt <= 0) { hint.innerHTML = ''; return; }
+  if (amt < 1000) {
+    hint.innerHTML = '<div class="amount-warn">⚠️ Minimum is 1,000 ETB</div>';
+  } else if (amt % 1000 !== 0) {
+    const tickets = Math.floor(amt / 1000);
+    const remainder = amt - tickets * 1000;
+    hint.innerHTML = `<div class="amount-warn">⚠️ ${amt.toLocaleString()} ETB = ${tickets} ticket(s) + ${remainder} ETB remainder.<br>
+      Admin will either issue ${tickets} ticket(s) and keep ${remainder} ETB as credit, or ask you to pay exact amount.</div>`;
+  } else {
+    const tickets = amt / 1000;
+    hint.innerHTML = `<div class="amount-ok">✅ ${amt.toLocaleString()} ETB = ${tickets} ticket(s). Perfect!</div>`;
+  }
+}
+
+/* ============ IMAGE PREVIEW ============ */
+function previewImage(e) {
+  const file = e.target.files[0];
+  const preview = document.getElementById('previewImg');
+  if (!file) { preview.style.display = 'none'; return; }
+  if (file.size > 2 * 1024 * 1024) {
+    alert('⚠️ Image too large. Please use under 2MB.');
+    e.target.value = '';
+    preview.style.display = 'none';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    preview.src = ev.target.result;
+    preview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ============ USER: REGISTER ============ */
+async function submitRegistration() {
+  const name = document.getElementById('userName').value.trim();
+  const phone = document.getElementById('userPhone').value.trim();
+  const amount = parseInt(document.getElementById('userAmount').value);
+  const note = document.getElementById('userNote').value.trim();
+  const fileInput = document.getElementById('userScreenshot');
+  const msg = document.getElementById('regMsg');
+
+  if (!name || !phone || !amount || !fileInput.files[0]) {
+    msg.innerHTML = '<p style="color:#ff6b6b;">⚠️ Please fill name, phone, amount, and upload screenshot.</p>';
+    return;
+  }
+  if (amount < 1000) {
+    msg.innerHTML = '<p style="color:#ff6b6b;">⚠️ Minimum payment is 1,000 ETB.</p>';
+    return;
+  }
+  if (state.status !== 'collecting') {
+    msg.innerHTML = '<p style="color:#ff6b6b;">⚠️ Round is not accepting registrations.</p>';
+    return;
+  }
+
+  const screenshot = await fileToBase64(fileInput.files[0]);
+  const reg = {
+    id: 'REG-' + Date.now(),
+    name, phone, amount, note, screenshot,
+    status: 'pending',
+    round: state.round,
+    timestamp: new Date().toISOString()
+  };
+  state.registrations.push(reg);
+  save();
+
+  const suggestedTickets = Math.floor(amount / TICKET_PRICE);
+  const remainder = amount - suggestedTickets * TICKET_PRICE;
+  let extraNote = '';
+  if (remainder > 0) {
+    extraNote = `<br>⚠️ You paid ${amount} ETB. Admin will issue ${suggestedTickets} ticket(s). The extra ${remainder} ETB may be kept as credit for your next round.`;
+  }
+  msg.innerHTML = `<p style="color:#4ecdc4;">✅ Submitted! Admin will verify your screenshot.<br>
+    Reference: <strong>${reg.id}</strong>${extraNote}</p>`;
+
+  document.getElementById('userName').value = '';
+  document.getElementById('userPhone').value = '';
+  document.getElementById('userAmount').value = '';
+  document.getElementById('userNote').value = '';
+  document.getElementById('amountHint').innerHTML = '';
+  fileInput.value = '';
+  document.getElementById('previewImg').style.display = 'none';
+}
+
+/* ============ USER: LOOKUP ============ */
+function lookupTickets() {
+  const phone = document.getElementById('lookupPhone').value.trim();
+  const list = document.getElementById('ticketList');
+  if (!phone) { list.innerHTML = '<p style="color:#ff6b6b;">Enter your phone.</p>'; return; }
+
+  const myTickets = state.tickets.filter(t => t.phone === phone && t.round === state.round);
+  const myPending = state.registrations.filter(r => r.phone === phone && r.status === 'pending');
+  const myRejected = state.registrations.filter(r => r.phone === phone && r.status === 'rejected');
+  const myCredits = state.credits.filter(c => c.phone === phone && !c.used);
+
+  let html = '';
+
+  if (myCredits.length > 0) {
+    html += '<h3 style="color:#9b59b6; margin-bottom:8px;">💜 Your Credits (for future rounds)</h3>';
+    myCredits.forEach(c => {
+      html += `<div class="ledger-item">
+        <div>💜 <strong>${c.amount} ETB</strong> credit from Round ${c.fromRound}</div>
+        <div style="opacity:.8;">${c.note || ''}</div>
+      </div>`;
+    });
+  }
+
+  if (myPending.length > 0) {
+    html += '<h3 style="color:#f39c12; margin:12px 0 8px;">⏳ Pending Verification</h3>';
+    myPending.forEach(r => {
+      html += `<div class="ticket" style="background:linear-gradient(135deg,#f39c12,#e67e22);">
+        <div>⏳ ${r.amount} ETB claimed</div>
+        <div class="id">${r.id}</div>
+      </div>`;
+    });
+  }
+  if (myRejected.length > 0) {
+    html += '<h3 style="color:#ff6b6b; margin:12px 0 8px;">❌ Rejected</h3>';
+    myRejected.forEach(r => {
+      html += `<div class="ticket" style="background:linear-gradient(135deg,#ff6b6b,#c0392b);">
+        <div>❌ ${r.amount} ETB — ${r.rejectReason || 'Not verified'}</div>
+      </div>`;
+    });
+  }
+  if (myTickets.length > 0) {
+    html += '<h3 style="color:#4ecdc4; margin:12px 0 8px;">✅ Your Tickets (Round ' + state.round + ')</h3>';
+    myTickets.forEach(t => {
+      html += `<div class="ticket">
+        <div>🎫 ${t.name}</div>
+        <div class="id">${t.id}</div>
+      </div>`;
+    });
+  }
+  if (!html) html = '<p style="opacity:.7;">No records found for this phone in current round.</p>';
+  list.innerHTML = html;
+}
+
+/* ============ ADMIN ============ */
+let adminLoggedIn = false;
+function adminLogin() {
+  const pass = document.getElementById('adminPass').value;
+  if (pass === ADMIN_PASSWORD) {
+    adminLoggedIn = true;
+    document.getElementById('adminLogin').classList.add('hidden');
+    document.getElementById('adminDash').classList.remove('hidden');
+    renderAdmin();
+  } else {
+    alert('❌ Wrong password');
+  }
+}
+
+function renderAdmin() {
+  if (!adminLoggedIn) return;
+  document.getElementById('adminRound').textContent = state.round;
+  document.getElementById('adminCollected').textContent = state.collected.toLocaleString() + ' ETB';
+  document.getElementById('adminTickets').textContent = state.tickets.filter(t => t.round === state.round).length;
+  const pending = state.registrations.filter(r => r.status === 'pending' && r.round === state.round);
+  document.getElementById('adminPending').textContent = pending.length;
+  document.getElementById('pendingCount').textContent = pending.length;
+  document.getElementById('adminStatus').textContent = state.status.toUpperCase();
+
+  const pct = Math.min(100, (state.collected / ROUND_TARGET) * 100);
+  const bar = document.getElementById('adminProgress');
+  bar.style.width = pct + '%';
+  bar.textContent = pct.toFixed(1) + '%';
+
+  const startBtn = document.getElementById('startSpinBtn');
+  startBtn.disabled = !(state.collected >= ROUND_TARGET && state.status === 'collecting' && state.tickets.length >= 4);
+
+  // Pending list
+  const pl = document.getElementById('pendingList');
+  if (pending.length === 0) {
+    pl.innerHTML = '<p style="opacity:.6;">No pending registrations.</p>';
+  } else {
+    pl.innerHTML = pending.map(r => {
+      const suggested = Math.floor(r.amount / TICKET_PRICE);
+      const remainder = r.amount - suggested * TICKET_PRICE;
+      const isOdd = remainder > 0;
+
+      // Check if user has credit from past rounds
+      const userCredits = state.credits.filter(c => c.phone === r.phone && !c.used);
+      const totalCredit = userCredits.reduce((s, c) => s + c.amount, 0);
+
+      return `
+      <div class="pending-item ${isOdd ? 'warning' : ''}">
+        <div class="top">
+          <div class="thumb" onclick="viewImage('${r.id}')">
+            <img src="${r.screenshot}" alt="Screenshot" />
+          </div>
+          <div class="details">
+            <div><strong>Name:</strong> <input type="text" id="name-${r.id}" value="${r.name}" /></div>
+            <div><strong>Phone:</strong> <input type="tel" id="phone-${r.id}" value="${r.phone}" /></div>
+            <div><strong>Claimed:</strong> ${r.amount.toLocaleString()} ETB</div>
+            <div><strong>Note:</strong> ${r.note || '—'}</div>
+            <div><strong>ID:</strong> <code>${r.id}</code></div>
+            <div><strong>Time:</strong> ${new Date(r.timestamp).toLocaleString()}</div>
+            ${totalCredit > 0 ? `<div style="color:#c39bd3;">💜 User has <strong>${totalCredit} ETB</strong> unused credit from past rounds</div>` : ''}
+            ${isOdd ? `<div class="amount-warn">⚠️ Odd amount! ${r.amount} ETB = ${suggested} ticket(s) + ${remainder} ETB remainder</div>` : `<div class="amount-ok">✅ Exact amount: ${suggested} ticket(s)</div>`}
+          </div>
+        </div>
+        <div class="admin-actions">
+          <div class="row">
+            <label>🎫 Issue tickets:</label>
+            <input type="number" id="tickets-${r.id}" value="${suggested}" min="0" max="200" oninput="updateAdminSummary('${r.id}')" />
+            <span id="summary-${r.id}" style="font-size:13px; opacity:.8;"></span>
+          </div>
+          <div class="row">
+            <label>💜 Add remainder as credit:</label>
+            <input type="number" id="credit-${r.id}" value="${remainder}" min="0" style="width:100px;" />
+            <span style="font-size:12px; opacity:.7;">ETB saved for user's next round</span>
+          </div>
+          <div class="row">
+            <label>📝 Admin note:</label>
+            <input type="text" id="note-${r.id}" placeholder="Optional note for user" />
+          </div>
+          <div class="row">
+            <button class="btn btn-sm" onclick="approveReg('${r.id}')">✅ Approve & Cut</button>
+            <button class="btn btn-sm btn-warning" onclick="approveWithCredit('${r.id}')">💜 Approve + Credit</button>
+            <button class="btn btn-sm btn-danger" onclick="rejectReg('${r.id}')">❌ Reject</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Update summaries
+    pending.forEach(r => updateAdminSummary(r.id));
+  }
+
+  // Credit ledger
+  const cl = document.getElementById('creditLedger');
+  const activeCredits = state.credits.filter(c => !c.used);
+  if (activeCredits.length === 0) {
+    cl.innerHTML = '<p style="opacity:.6;">No active credits.</p>';
+  } else {
+    cl.innerHTML = activeCredits.map(c => `
+      <div class="ledger-item">
+        <div>💜 <strong>${c.name}</strong> (${c.phone}) — <strong>${c.amount} ETB</strong></div>
+        <div style="opacity:.8;">From Round ${c.fromRound} ${c.note ? '• ' + c.note : ''}</div>
+      </div>
+    `).join('');
+  }
+
+  // Approved list
+  const approved = state.tickets.filter(t => t.round === state.round);
+  const al = document.getElementById('approvedList');
+  if (approved.length === 0) {
+    al.innerHTML = '<p style="opacity:.6;">No approved tickets yet.</p>';
+  } else {
+    al.innerHTML = approved.map(t => `
+      <div class="ticket" style="margin-bottom:5px; padding:10px;">
+        <div>🎫 ${t.name} • ${t.phone} ${t.fromCredit ? '<span class="credit-badge">💜 from credit</span>' : ''}</div>
+        <div class="id">${t.id}</div>
+      </div>
+    `).join('');
+  }
+
+  // Winners
+  const wl = document.getElementById('adminWinners');
+  const roundWinners = state.winners.filter(w => w.round === state.round);
+  if (roundWinners.length === 0) {
+    wl.innerHTML = '<p style="opacity:.6;">No winners yet.</p>';
+  } else {
+    wl.innerHTML = roundWinners.map((w, i) => `
+      <div class="winner-row">
+        <div>🏆 <strong>${['1st','2nd','3rd','4th'][i]} Prize</strong><br>
+          ${w.name} (${w.phone})</div>
+        <div style="text-align:right;">
+          <div style="color:#ffcc00; font-weight:bold;">${w.prize.label}</div>
+          <div style="font-family:monospace; font-size:12px;">${w.ticket.id}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function updateAdminSummary(regId) {
+  const reg = state.registrations.find(r => r.id === regId);
+  if (!reg) return;
+  const t = parseInt(document.getElementById('tickets-' + regId).value) || 0;
+  const c = parseInt(document.getElementById('credit-' + regId).value) || 0;
+  const total = t * 1000 + c;
+  const diff = reg.amount - total;
+  const el = document.getElementById('summary-' + regId);
+  if (!el) return;
+  if (diff === 0) {
+    el.innerHTML = `<span style="color:#4ecdc4;">✅ ${t} ticket(s) + ${c} credit = ${total} ETB (matches payment)</span>`;
+  } else if (diff > 0) {
+    el.innerHTML = `<span style="color:#f39c12;">⚠️ ${diff} ETB unaccounted</span>`;
+  } else {
+    el.innerHTML = `<span style="color:#ff6b6b;">❌ Exceeds payment by ${-diff} ETB</span>`;
+  }
+}
+
+function viewImage(regId) {
+  const reg = state.registrations.find(r => r.id === regId);
+  if (!reg) return;
+  document.getElementById('imgModalSrc').src = reg.screenshot;
+  document.getElementById('imgModal').classList.add('show');
+}
+
+function approveReg(regId) {
+  const reg = state.registrations.find(r => r.id === regId);
+  if (!reg) return;
+
+  const newName = document.getElementById('name-' + regId).value.trim();
+  const newPhone = document.getElementById('phone-' + regId).value.trim();
+  const ticketCount = parseInt(document.getElementById('tickets-' + regId).value);
+  const creditAmt = parseInt(document.getElementById('credit-' + regId).value) || 0;
+  const adminNote = document.getElementById('note-' + regId).value.trim();
+
+  if (!newName || !newPhone) { alert('⚠️ Name and phone required.'); return; }
+  if (isNaN(ticketCount) || ticketCount < 0) { alert('⚠️ Invalid ticket count.'); return; }
+
+  if (ticketCount === 0 && creditAmt === 0) {
+    if (!confirm('Issue 0 tickets and 0 credit? This rejects the registration.')) return;
+    reg.status = 'rejected';
+    reg.rejectReason = adminNote || 'Admin issued 0 tickets';
+    save(); renderAdmin(); return;
+  }
+
+  reg.status = 'approved';
+  reg.name = newName;
+  reg.phone = newPhone;
+  reg.ticketsIssued = ticketCount;
+  reg.creditIssued = creditAmt;
+  reg.adminNote = adminNote;
+
+  // Cut tickets
+  for (let i = 0; i < ticketCount; i++) {
+    const ticketId = `R${state.round}-${String(state.ticketCounter).padStart(3,'0')}`;
+    state.tickets.push({
+      id: ticketId,
+      name: newName, phone: newPhone,
+      regId: reg.id, round: state.round,
+      createdAt: new Date().toISOString()
+    });
+    state.ticketCounter++;
+  }
+  state.collected += ticketCount * TICKET_PRICE;
+
+  // Add credit if any
+  if (creditAmt > 0) {
+    state.credits.push({
+      phone: newPhone, name: newName,
+      amount: creditAmt, fromRound: state.round,
+      note: adminNote || `Extra from ${reg.amount} ETB payment`,
+      used: false, createdAt: new Date().toISOString()
+    });
+  }
+
+  save(); renderAdmin();
+}
+
+function approveWithCredit(regId) {
+  // Same as approve but emphasizes credit usage
+  approveReg(regId);
+}
+
+function rejectReg(regId) {
+  const reason = prompt('Reason for rejection (optional):');
+  if (reason === null) return;
+  const reg = state.registrations.find(r => r.id === regId);
+  if (!reg) return;
+  reg.status = 'rejected';
+  reg.rejectReason = reason || 'Payment not verified';
+  save(); renderAdmin();
+}
+
+function adminResetRound() {
+  if (!confirm('Reset current round? All data for this round will be cleared.')) return;
+  state.registrations = state.registrations.filter(r => r.round !== state.round);
+  state.tickets = state.tickets.filter(t => t.round !== state.round);
+  state.winners = state.winners.filter(w => w.round !== state.round);
+  state.collected = 0;
+  state.status = 'collecting';
+  save(); renderAdmin(); updateLiveView();
+}
+
+/* ============ SPIN LOGIC ============ */
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const size = canvas.width;
+const center = size / 2;
+const radius = center - 10;
+const segAngle = (2 * Math.PI) / PRIZES.length;
+let currentRotation = 0;
+
+function drawWheel(rotation) {
+  ctx.clearRect(0, 0, size, size);
+  ctx.save();
+  ctx.translate(center, center);
+  ctx.rotate(rotation);
+  for (let i = 0; i < PRIZES.length; i++) {
+    const start = i * segAngle;
+    const end = start + segAngle;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, start, end);
+    ctx.closePath();
+    ctx.fillStyle = PRIZES[i].color;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.rotate(start + segAngle / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#222';
+    ctx.font = 'bold 22px Segoe UI';
+    ctx.fillText(PRIZES[i].label, radius - 20, 8);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+drawWheel(0);
+
+let spinning = false;
+let currentDrawIndex = 0;
+let eligibleTickets = [];
+
+function updateLiveView() {
+  document.getElementById('liveRound').textContent = state.round;
+  document.getElementById('liveCollected').textContent = state.collected.toLocaleString();
+  document.getElementById('liveTickets').textContent = state.tickets.filter(t => t.round === state.round).length;
+  document.getElementById('liveStatus').textContent = state.status.toUpperCase();
+  const pct = Math.min(100, (state.collected / ROUND_TARGET) * 100);
+  const bar = document.getElementById('liveProgress');
+  bar.style.width = pct + '%';
+  bar.textContent = pct.toFixed(1) + '%';
+
+  const winners = state.winners.filter(w => w.round === state.round);
+  const wl = document.getElementById('roundWinners');
+  if (winners.length > 0) {
+    wl.innerHTML = '<h3 style="color:#ffcc00; margin:12px 0 8px;">🏆 Winners This Round</h3>' +
+      winners.map((w, i) => `
+        <div class="winner-row">
+          <div>🏆 <strong>${['1st','2nd','3rd','4th'][i]}</strong> — ${w.name}</div>
+          <div style="color:#ffcc00;">${w.prize.label}</div>
+        </div>
+      `).join('');
+  } else {
+    wl.innerHTML = '';
+  }
+
+  const msg = document.getElementById('spinMessage');
+  if (state.status === 'collecting') {
+    msg.textContent = state.collected >= ROUND_TARGET
+      ? '✅ Round full! Waiting for admin to start spin...'
+      : `Collecting... ${state.collected.toLocaleString()} / ${ROUND_TARGET.toLocaleString()} ETB`;
+  } else if (state.status === 'spinning') {
+    msg.textContent = `🎰 Drawing ${['1st','2nd','3rd','4th'][currentDrawIndex]} prize...`;
+  } else if (state.status === 'completed') {
+    msg.textContent = '🎉 Round completed! Winners announced.';
+  }
+}
+
+function adminStartSpin() {
+  if (state.status !== 'collecting') return;
+  if (state.tickets.filter(t => t.round === state.round).length < 4) {
+    alert('Need at least 4 tickets to spin.'); return;
+  }
+  state.status = 'spinning';
+  currentDrawIndex = 0;
+  eligibleTickets = [...state.tickets.filter(t => t.round === state.round)];
+  save(); renderAdmin(); updateLiveView();
+  drawNextPrize();
+}
+
+function drawNextPrize() {
+  if (currentDrawIndex >= 4) {
+    state.status = 'completed';
+    save(); renderAdmin(); updateLiveView();
+    document.getElementById('spinMessage').textContent = '🎉 Round complete!';
+    return;
+  }
+  const prize = PRIZES[currentDrawIndex];
+  const winnerIdx = Math.floor(Math.random() * eligibleTickets.length);
+  const winner = eligibleTickets[winnerIdx];
+
+  spinWheelToSegment(currentDrawIndex, () => {
+    state.winners.push({
+      prize, ticket: winner,
+      name: winner.name, phone: winner.phone,
+      round: state.round
+    });
+    eligibleTickets.splice(winnerIdx, 1);
+    save();
+    showWinnerModal(prize, winner, currentDrawIndex);
+  });
+}
+
+function spinWheelToSegment(targetIndex, onDone) {
+  if (spinning) return;
+  spinning = true;
+  const fullSpins = 6 + Math.floor(Math.random() * 3);
+  const targetCenter = targetIndex * segAngle + segAngle / 2;
+  const jitter = (Math.random() - 0.5) * segAngle * 0.6;
+  const targetRotation = -Math.PI / 2 - targetCenter + fullSpins * 2 * Math.PI;
+  const finalRotation = currentRotation + targetRotation + jitter;
+  const startRotation = currentRotation;
+  const delta = finalRotation - startRotation;
+  const duration = 5000;
+  const startTime = performance.now();
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(t);
+    currentRotation = startRotation + delta * eased;
+    drawWheel(currentRotation);
+    if (t < 1) requestAnimationFrame(animate);
+    else { spinning = false; onDone(); }
+  }
+  requestAnimationFrame(animate);
+}
+
+function showWinnerModal(prize, ticket, drawIdx) {
+  document.getElementById('modalTitle').textContent = `🎉 ${['1st','2nd','3rd','4th'][drawIdx]} PRIZE WINNER!`;
+  document.getElementById('modalPrize').textContent = prize.label;
+  document.getElementById('modalWinner').textContent = `👤 ${ticket.name}`;
+  document.getElementById('modalTicket').textContent = `🎫 ${ticket.id} • ${ticket.phone}`;
+  document.getElementById('modalBtn').textContent = drawIdx < 3 ? '🎯 Next Draw' : '🏁 Finish Round';
+  document.getElementById('winnerModal').classList.add('show');
+}
+
+function closeWinnerModal() {
+  document.getElementById('winnerModal').classList.remove('show');
+  currentDrawIndex++;
+  renderAdmin(); updateLiveView();
+  if (currentDrawIndex < 4) setTimeout(drawNextPrize, 500);
+  else {
+    state.status = 'completed';
+    save(); renderAdmin(); updateLiveView();
+    if (confirm('🎉 Round complete! Start a new round?')) startNewRound();
+  }
+}
+
+function startNewRound() {
+  state.round++;
+  state.collected = 0;
+  state.status = 'collecting';
+  state.ticketCounter = 1;
+  save(); renderAdmin(); updateLiveView();
+}
+
+updateLiveView();
+</script>
+
+</body>
+</html>
