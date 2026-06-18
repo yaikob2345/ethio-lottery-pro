@@ -1,105 +1,84 @@
- # 🎰 Ethio Lottery Pro
+# 🎰 Ethio Lottery Pro
 
-A complete lottery/spin draw system with dual modes, unlimited chat, and admin panel.
+A complete lottery/spin draw system with dual modes, unlimited chat, and admin panel. Built with pure HTML, CSS, and JavaScript — no backend required!
+
+![Status](https://img.shields.io/badge/status-active-success)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Version](https://img.shields.io/badge/version-1.0.0-orange)
+
+---
 
 ## ✨ Features
 
 ### 👤 User Features
-- 📝 Register for Mini or Standard mode
-- 📸 Upload payment screenshot
+- 📝 Register for **Mini** or **Standard** mode
+- 📸 Upload payment screenshot for verification
 - 💬 Unlimited chat with admin (no registration required)
-- 🎫 View tickets and credits
-- 🎡 Watch live spin
+- 🎫 View tickets, credits, and status
+- 🎡 Watch live spin with real-time updates
+- 💜 Credit system for odd payment amounts
 
 ### 🔐 Admin Features
-- 👥 User list with click-to-chat
-- 💬 Unlimited messaging with users
+- 👥 User list with **click-to-chat** (no typing phone numbers!)
+- 💬 Unlimited messaging with all users
 - 💾 Storage monitor (5MB limit tracking)
-- 📁 Export data (CSV/JSON)
-- 🎯 Manage two modes simultaneously
-- 🎡 Control spin for each mode
-
-### 🎮 Game Modes
-
-**Mini Mode:**
-- 20 users × 100 ETB = 2,000 ETB target
-- Prizes: 1,000 • 300 • 200 • 100 ETB
-
-**Standard Mode:**
-- 300 users × 200 ETB = 60,000 ETB target
-- Prizes: 30,000 • 10,000 • 5,000 • 1,000 ETB
-
-## 🚀 How to Use
-
-### For Users
-1. Open `index.html` in your browser
-2. Go to **Register** tab
-3. Choose mode (Mini or Standard)
-4. Fill in details and upload payment screenshot
-5. Chat with admin if needed
-6. Watch live spin when round completes
-
-### For Admin
-1. Open `index.html` in browser
-2. Go to **Admin** tab
-3. Login with password: `admin123`
-4. Verify payments and issue tickets
-5. Chat with users
-6. Start spin when target reached
-
-## 📁 Files
-
-- `index.html` - Main page
-- `styles.css` - Styling
-- `state.js` - Data management
-- `chat.js` - Chat system
-- `register.js` - Registration
-- `spin.js` - Wheel animation
-- `admin.js` - Admin panel
-- `app.js` - Initialization
-
-## 💾 Data Storage
-
-- Uses browser localStorage (5MB limit)
-- Export data anytime via CSV/JSON
-- Auto-cleanup screenshots after approval
-
-## 🔐 Default Password
-
-Admin password: `admin123` (change in `state.js`)
-
-## 🌟 Key Features
-
-- ✅ No backend required (runs in browser)
-- ✅ Unlimited chat with 2-min smart refresh
-- ✅ Dual mode support
-- ✅ Real-time updates
-- ✅ Responsive design (mobile + desktop)
-- ✅ Data export/import
-- ✅ Credit system for odd payments
-
-## 📱 Browser Support
-
-Works on all modern browsers:
-- Chrome ✅
-- Firefox ✅
-- Safari ✅
-- Edge ✅
-
-## 🎨 Design
-
-- Modern glassmorphism UI
-- Gradient backgrounds
-- Smooth animations
-- Mobile responsive
-
-## 💡 Tips
-
-- Download backup before clearing browser data
-- Use exact payment amounts (100 or 200 ETB multiples)
-- Chat auto-refreshes for 2 minutes, then stops to save battery
-- Admin can start chat with any user from the list
+- 📁 Export data (CSV reports + JSON backup)
+- 🎯 Manage **two modes simultaneously**
+- 🎡 Control spin for each mode independently
+- 🧹 Auto-cleanup screenshots after approval
+- 🔄 Round management (reset, new round)
 
 ---
 
-Made with ❤️ for ETB lottery systems
+## 🎮 Game Modes
+
+### 🎯 Mini Mode
+| Detail | Value |
+|--------|-------|
+| Max Users | 20 |
+| Ticket Price | 100 ETB |
+| Target | 2,000 ETB |
+| 1st Prize | 1,000 ETB |
+| 2nd Prize | 300 ETB |
+| 3rd Prize | 200 ETB |
+| 4th Prize | 100 ETB |
+
+### 🏆 Standard Mode
+| Detail | Value |
+|--------|-------|
+| Max Users | 300 |
+| Ticket Price | 200 ETB |
+| Target | 60,000 ETB |
+| 1st Prize | 30,000 ETB |
+| 2nd Prize | 10,000 ETB |
+| 3rd Prize | 5,000 ETB |
+| 4th Prize | 1,000 ETB |
+
+---
+
+## 🚀 How to Use
+
+### 👤 For Users
+
+1. Open the live link or `index.html` in your browser
+2. Go to **📝 Register** tab
+3. Choose mode: **🎯 Mini** or **🏆 Standard**
+4. Fill in your details (name, phone, amount)
+5. Upload payment screenshot
+6. Submit registration
+7. Chat with admin in **💬 Chat** tab if needed
+8. Watch live spin in **🎡 Live Spin** tab
+
+### 🔐 For Admin
+
+1. Go to **🔐 Admin** tab
+2. Login with password: `admin123`
+3. Click on any user in the **👥 User List** to chat
+4. Verify payment screenshots
+5. Issue tickets (auto-suggested based on amount)
+6. Start spin when target is reached
+7. Export data after round completion
+
+---
+
+## 📁 Project Structure
